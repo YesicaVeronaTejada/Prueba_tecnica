@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora con JavaScript</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="calculadora">
+      <h3>Calculadora</h3>
+      <input type="text" id="pantallaOperaciones" value="0" readonly />
+
+      <div class="botones">
+        <button class="especial" id="btnLimpiar">AC</button>
+        <button class="especial" id="btnEliminarUltimo">←</button>
+        <button data-value="(">(</button>
+        <button data-value=")">)</button>
+
+        <button data-value="7">7</button>
+        <button data-value="8">8</button>
+        <button data-value="9">9</button>
+        <button class="operador" data-value="/">/</button>
+
+        <button data-value="4">4</button>
+        <button data-value="5">5</button>
+        <button data-value="6">6</button>
+        <button class="operador" data-value="*">×</button>
+
+        <button data-value="1">1</button>
+        <button data-value="2">2</button>
+        <button data-value="3">3</button>
+        <button class="operador" data-value="-">-</button>
+
+        <button data-value="0">0</button>
+        <button data-value=".">.</button>
+        <button class="especial" id="btnCambiarSigno">+/-</button>
+        <button class="operador" data-value="+">+</button>
+        <button class="igual" id="btnCalcular">=</button>
+      </div>
+    </div>
+
+    <script>
+      const pantallaOperaciones = document.getElementById(
+        "pantallaOperaciones",
+      );
+
+      document.querySelectorAll("button[data-value]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          agregar(btn.dataset.value);
+        });
+      });
+
+      document.getElementById("btnLimpiar").addEventListener("click", limpiar);
+      document
+        .getElementById("btnEliminarUltimo")
+        .addEventListener("click", eliminarUltimo);
+      document
+        .getElementById("btnCambiarSigno")
+        .addEventListener("click", cambiarSigno);
+      document
+        .getElementById("btnCalcular")
+        .addEventListener("click", calcular);
+
+      function agregar(valor) {
+        const operadores = ["+", "-", "*", "/"];
+
+        let expresionOp = pantallaOperaciones.value;
+        if (pantallaOperaciones.value === "Error") {
+          pantallaOperaciones.value = valor;
+          return;
+        }
+        if (expresionOp == "0" && !operadores.includes(valor)) {
+          pantallaOperaciones.value = valor;
+          return;
+        }
+        const ultimoCaracter = expresionOp.slice(-1);
+        if (operadores.includes(valor)) {
+          if (operadores.includes(ultimoCaracter)) {
+            pantallaOperaciones.value = expresionOp.slice(0, -1) + valor;
+            return;
+          }
+        }
+        if (valor === ".") {
+          const match = expresionOp.match(/(\d+\.?\d*)$/);
+          if (match && match[0].includes(".")) return;
+        }
+        pantallaOperaciones.value += valor;
+      }
+
+      function limpiar() {
+        pantallaOperaciones.value = "0";
+      }
+
+      function eliminarUltimo() {
+        if (pantallaOperaciones.value.length <= 1) {
+          pantallaOperaciones.value = "0";
+        } else {
+          pantallaOperaciones.value = pantallaOperaciones.value.slice(0, -1);
+        }
+      }
+      function cambiarSigno() {
+        let exp = pantallaOperaciones.value;
+
+        if (exp === "0") return;
+
+        let match = exp.match(/(-?\d+\.?\d*)$/);
+
+        if (!match) return;
+
+        let numero = match[0];
+        let inicio = exp.slice(0, -numero.length);
+
+        if (numero.startsWith("-")) {
+          numero = numero.substring(1);
+        } else {
+          numero = "-" + numero;
+        }
+
+        pantallaOperaciones.value = inicio + numero;
+      }
+
+      function calcular() {
+        try {
+          let expresion = pantallaOperaciones.value;
+
+          let abiertos = (expresion.match(/\(/g) || []).length;
+          let cerrados = (expresion.match(/\)/g) || []).length;
+          if (abiertos !== cerrados) {
+            pantallaOperaciones.value = "Error";
+            return;
+          }
+          let resultado = Function("return " + expresion)();
+          if (!isFinite(resultado)) {
+            pantallaOperaciones.value = "Error";
+            return;
+          }
+          pantallaOperaciones.value = resultado;
+        } catch {
+          pantallaOperaciones.value = "Error";
+        }
+      }
+    </script>
+  </body>
+</html>
